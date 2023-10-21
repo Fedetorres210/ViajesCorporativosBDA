@@ -1,4 +1,5 @@
 import streamlit as st
+from  logica.Clases import Usuario, Viaje,Colaborador
 
 pantallaSolicitudd=st.container()
 with pantallaSolicitudd:

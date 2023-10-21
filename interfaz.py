@@ -1,4 +1,6 @@
 import streamlit as st
+from  logica.Clases import Usuario, Viaje,Colaborador
+from config.config import insertarValor, verificarInicioSesion
 
 pantallaInicio1=st.container()
 with pantallaInicio1:
@@ -7,14 +9,24 @@ with pantallaInicio1:
     if accion == "Iniciar Sesion":
         iniciarSesionC= st.container()
         with iniciarSesionC:
-            cedula = st.text_input('Ingrese su usuario o cedula:',key="input_cedula")
+            correo = st.text_input('Ingrese su usuario o cedula:',key="input_cedula")
             clave = st.text_input("Ingrese su contraseña: ",key="inputClave")
             btnIniciarSesion = st.button("Iniciar sesion")
-            if btnIniciarSesion ==True:
+            if btnIniciarSesion:
+                e = Exception("Error al encontrar el usuario revise el Correo, la contraseña o la conexion con base de datos ")
+                        
                 try:
-                    usuario =  1
+                    miUsuario = Usuario(correo,clave)
+                    if(verificarInicioSesion(miUsuario.generarDatosjson())):
+                        st.success(f"Bienvenido de regreso {miUsuario.getCorreo()}")
+                    else:
+                        raise e
                 except:
-                    st.warning("cedula incorrecta")
+                    st.error(e)
+
+
+
+
     if accion  == "Crear Cuenta":
         crearCuenta=st.container()
         with crearCuenta:
@@ -22,10 +34,20 @@ with pantallaInicio1:
             correo = st.text_input("Correo:",key="input_correo")
             contrasena = st.text_input("Contraseña:",key="input_contraseña")
             btnCrearCliente=st.button("Crear Cliente")
+            ##POR ALLA ME VOLARIA EL BOTON CONTINUAR 
             btnContinuar= st.button("Continuar")
-            if btnCrearCliente == True:
+            if btnCrearCliente:
                 try: 
-                    st.warning("Se realizo la conexion")
+                    
+                    miUsuario = Usuario(correo,contrasena)
+                    print(miUsuario.generarDatosjson())
+                    res = insertarValor(miUsuario.generarDatosjson())
+                    
+                    if(res):
+                        st.success("Se registro con exito la conexion")
+                    else:
+                        raise (Exception("Fallo en la conexion con la base de datos "))
+                   
                 except:
                     st.warning("No se registro la informacion")
     
