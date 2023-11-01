@@ -37,7 +37,7 @@ def verificarInicioSesion(filtro):
         return False
     try:
         usuario_encontrado = collection.find_one(filtro)
-        if usuario_encontrado:
+        if usuario_encontrado:  
             return True
         else:return False
 
@@ -54,7 +54,9 @@ def verificarDato(filtro):
         return False
     try:
         usuario_encontrado = collection.find_one(filtro)
+        
         if usuario_encontrado:
+            print(usuario_encontrado)
             return usuario_encontrado
         else:return False
 
@@ -75,7 +77,7 @@ def verificarDatos(filtro):
 
     except Exception:
         return False
-    
+
 
 
 

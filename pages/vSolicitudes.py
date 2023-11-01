@@ -1,5 +1,5 @@
 import streamlit as st
-from  logica.Clases import Usuario, Viaje,Colaborador
+from proyecto2.logica import Clases
 
 pantallaSolicitudd=st.container()
 with pantallaSolicitudd:
@@ -9,7 +9,8 @@ with pantallaSolicitudd:
        registro= st.container()
        with registro:
             columna1, columna2,columna3= st.columns(3)
-            with columna1:    
+            with columna1:   
+                
                 nombreCompleto = st.text_input('Ingrese su nombre completo:',key="input_nombreCompleto")
                 puesto = st.text_input("Ingrese su puesto: ",key="inputPuesto")
                 departamento = st.text_input("Ingrese el departamento en que trabaja: ",key="inputDepartamento")

@@ -14,9 +14,11 @@ class Usuario:
     
     """
 
-    def __init__(self,correo,password):
+    def __init__(self,correo,password,tipo):
         self.correo = correo
         self.password = password
+        self.tipo = tipo
+
 
     """
     Metodo para generarDatos en un diccionario para se ingresados a mongo
@@ -27,7 +29,8 @@ class Usuario:
     def generarDatosjson(self):
         dic = { 
             "correo": self.correo,
-            "password": self.password
+            "password": self.password,
+            "tipo": self.tipo
         }
         return dic
     
@@ -36,6 +39,9 @@ class Usuario:
     
     def getPassword(self):
         return self.password
+    
+    def getTipo(self):
+        return self.tipo
 
 
 """
