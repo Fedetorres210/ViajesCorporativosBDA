@@ -1,4 +1,4 @@
-from config.connection import realizarConeccion
+from config.connection import realizarConeccionViajes,realizarConeccionUsuarios
 
 """
 Funcion que inserta un valor en la base de datos
@@ -6,18 +6,18 @@ Funcion que inserta un valor en la base de datos
 @return True si tiene exito o False
 
 """
-def insertarValor(datos):
-    collection = realizarConeccion()
+def insertarViaje(datos):
+    collection = realizarConeccionViajes()
     if  (collection==False):
         return False
     
-    try:
-        resultados = collection.insert_one(datos)
-        print(resultados)
-        print(resultados,resultados.inserted_id)
-        return True
-    except Exception:
-        return False
+   
+    print(datos)
+    resultados = collection.insert_one(datos)
+    print(resultados)
+    print(resultados,resultados.inserted_id)
+    return True
+    
     
 
 
@@ -32,7 +32,7 @@ Verifica el inicio de sesion de un usuario
 
 
 def verificarInicioSesion(filtro):
-    collection = realizarConeccion()
+    collection = realizarConeccionUsuarios()
     if (collection== False):
         return False
     try:
@@ -48,8 +48,7 @@ def verificarInicioSesion(filtro):
 
 
 
-def verificarDato(filtro):
-    collection = realizarConeccion()
+def verificarDato(filtro,collection):
     if (collection== False):
         return False
     try:
@@ -65,8 +64,8 @@ def verificarDato(filtro):
     
 
 
-def verificarDatos(filtro):
-    collection = realizarConeccion()
+def verificarDatos(filtro, collection):
+    
     if (collection== False):
         return False
     try:
@@ -81,13 +80,45 @@ def verificarDatos(filtro):
 
 
 
+def encontrarColaborador(filtro):
+    collection = realizarConeccionUsuarios()
+    if (collection== False):
+        return False
+    try:
+        usuario_encontrado = collection.find_one(filtro)
+        if usuario_encontrado:  
+            return True
+        else:return False
 
+    except Exception:
+        return False
+
+
+
+def generarColaborador(usuario,filtro):
+    collection = realizarConeccionUsuarios()
+    print(usuario,filtro)
+    usuario_encontrado = collection.update_one(usuario,{"$set":filtro})
+    print("Se realizo con exito")
+    return usuario_encontrado
+
+    
     
 
 
     
     
-
+def insertarUsuario(datos):
+    collection = realizarConeccionUsuarios()
+    if  (collection==False):
+        return False
+    
+   
+    print(datos)
+    resultados = collection.insert_one(datos)
+    print(resultados)
+    print(resultados,resultados.inserted_id)
+    return True
 
 
 

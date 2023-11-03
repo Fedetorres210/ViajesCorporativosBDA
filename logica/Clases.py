@@ -63,12 +63,11 @@ class Colaborador(Usuario):
     
     """
 
-    def __init__(self, correo, password,nombre, puesto,departamento,viajes=[]):
-        super().__init__(correo, password)
+    def __init__(self, correo, tipo, password,nombre, puesto,departamento):
+        super().__init__(correo, password,tipo)
         self.nombre = nombre
         self.puesto = puesto
         self.departamento = departamento
-        self.viajes = viajes
 
     """
     Metodo para generarDatos en un diccionario para se ingresados a mongo
@@ -79,11 +78,11 @@ class Colaborador(Usuario):
 
     def generarDatosjson(self):
         dic = super().generarDatosjson()
-        dic += {
+        dic["informacion"] =  {
             "nombre": self.nombre,
             "puesto": self.puesto,
             "departamento": self.departamento,
-            "viajes": self.viajes
+            
 
         }
 
@@ -150,16 +149,18 @@ class Viaje:
     
     
     """
-    def __init__(self,colaborador,internacional,destino,motivo,fechaInicio,fechaFin,detalles,aerolinea,precio):
+    def __init__(self,colaborador,internacional,destino,motivo,fechaInicio,fechaFin,aerolinea,precio,alojamiento,transporte):
         self.colaborador = colaborador
         self.internacional = internacional
         self.destino = destino
         self.motivo =motivo
         self.fechaInicio = fechaInicio
         self.fechaFin = fechaFin
-        self.detalles = detalles
+        
         self.aerolinea = aerolinea
         self.precio = precio
+        self.alojamiento =alojamiento
+        self.transporte = transporte
 
     def generarDatosJSON(self):
         dic = {
@@ -167,9 +168,8 @@ class Viaje:
             "esInternacional": self.internacional,
             "destino": self.destino,
             "motivo":self.motivo,
-            "fechaInicio":self.fechaInicio,
-            "fechaFin":self.fechaFin,
-            "detalles":self.detalles,
+            "fechaInicio":f"{self.fechaInicio}",
+            "fechaFin":f"{self.fechaFin}",
             "aerolinea":self.aerolinea,
             "precio":self.precio
 

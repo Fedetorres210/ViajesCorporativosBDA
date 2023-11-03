@@ -10,7 +10,7 @@ Funcion que realiza la conexion con la base de datos
 return una coneccion con una coleccion dee mongoDB o un False en caso de error
 
 """
-def realizarConeccion(URL= "mongodb+srv://admin:EieQHZvhRx9Ej5JQ@cluster1.2nnvusu.mongodb.net/?retryWrites=true&w=majority", AUTH = None, username = None, password = None):
+def realizarConeccionViajes(URL= "mongodb+srv://admin:EieQHZvhRx9Ej5JQ@cluster1.2nnvusu.mongodb.net/?retryWrites=true&w=majority", AUTH = None, username = None, password = None):
     try:   
         client = pymongo.MongoClient(URL)
         db = client.viajes
@@ -24,5 +24,21 @@ def realizarConeccion(URL= "mongodb+srv://admin:EieQHZvhRx9Ej5JQ@cluster1.2nnvus
 
 
 
+def realizarConeccionUsuarios(URL= "mongodb+srv://admin:EieQHZvhRx9Ej5JQ@cluster1.2nnvusu.mongodb.net/?retryWrites=true&w=majority", AUTH = None, username = None, password = None):
+    try:   
+        client = pymongo.MongoClient(URL)
+        db = client.viajes
+        collection = db.usuarios
+        
+
+    except Exception:
+        return False
     
+    
+    return collection
+
+
+
+
+
 

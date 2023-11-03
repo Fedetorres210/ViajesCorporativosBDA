@@ -1,62 +1,37 @@
 import streamlit as st
 import subprocess
 from  logica.Clases import Usuario, Viaje,Colaborador
-from config.config import insertarValor, verificarInicioSesion,verificarDato
+from config.config import insertarViaje, verificarInicioSesion,verificarDato, encontrarColaborador,generarColaborador,insertarUsuario
+from config.connection import realizarConeccionUsuarios,realizarConeccionViajes
 
 
-if 'btnIniciarSesionClicked' not in st.session_state:
-    st.session_state.btnIniciarSesionClicked = False
+if 'user' not in st.session_state:
+    st.session_state.user = None
 
+if 'colaborador' not in st.session_state:
+    st.session_state.colaborador = None
 
-
-
-pantallaInicio1=st.container()
+pantallaInicio1 = st.container()
 with pantallaInicio1:
     st.title("Sistema de Viajes")
-    accion = st.selectbox("Seleccione su opcion: ",["...","Crear Cuenta","Iniciar Sesion"])
+    accion = st.selectbox("Seleccione su opción: ", ["...", "Crear Cuenta", "Iniciar Sesion"])
     if accion == "Iniciar Sesion":
-        iniciarSesionC= st.container()
+        iniciarSesionC = st.container()
         with iniciarSesionC:
-            correo = st.text_input('Ingrese su usuario o cedula:',key="input_cedula")
-            clave = st.text_input("Ingrese su contraseña: ",key="inputClave")
-            btnIniciarSesion = st.button("Iniciar sesion")
+            correo = st.text_input('Ingrese su usuario o cedula:', key="input_cedula")
+            clave = st.text_input("Ingrese su contraseña: ", key="inputClave")
+            btnIniciarSesion = st.button("Iniciar sesión")
+
             if btnIniciarSesion:
-                st.session_state.btnIniciarSesionClicked = not st.session_state.btnIniciarSesionClicked
-                if st.session_state.btnIniciarSesionClicked:
-                    e = Exception("Error al encontrar el usuario revise el Correo, la contraseña o la conexion con base de datos ")
-                            
-                    try:
-                        filtro = {"correo":correo, "password":clave}
-                        usuarioActual = verificarDato(filtro)
-                        usuarioActual = Usuario(usuarioActual['correo'], usuarioActual['password'],usuarioActual['tipo'])
-                        if(verificarInicioSesion(filtro)):
-                            st.success(f"Bienvenido de regreso {usuarioActual.getTipo()}")
-                            if(usuarioActual.getTipo() == "Colaborador"):
-                                pantallaEmpleado=st.container()
-                                with pantallaEmpleado:
-                                    st.title("Gestionar solicitudes")
-                                    accion = st.selectbox("Seleccione su opcion: ",["...","Valorar solicitud","Consultar viajes programados","Consultar viajes internacionales","Consultar por destino especifico"])
-                                    if accion == "Valorar solicitud":
-                                        opcion = st.selectbox("Solicitudes en estado de pendiente: ",["AQUI VAN LAS SOLICITUDES GENERADAS EN UN FOR"])
-                                        decision = st.selectbox("Desea aprobar o rechazar esta solicitud: ",["...","Aprobar","Rechazar"])
-                                    if accion == "Consultar viajes programados":
-                                        #CONSULTA
-                                        fecha = st.date_input("Ingrese la fecha a consultar: ")
-                                        st.table(["Hola"])
-                                    if accion == "Consultar viajes internacionales":
-                                        st.selectbox("Indique el trimestre que desea: ", ["1er Trimestre","2do Trimestre","3er Trimestre","4to Trimestre"])
-                                        st.text_input("Indique el año del trimestre que desea consultar: ")
+                filtro = {"correo": correo, "password": clave}
+                usuarioActual = verificarDato(filtro,realizarConeccionUsuarios()) 
 
-                                        #CONSULTA
-                                        st.table(["Hola 2.0"])
-                                    if accion == "Consultar por destino especifico":
-                                        destino = st.selectbox("Seleccione un destino: ",['DROPDOWN'])
-                                        st.table(["Hola"])
-                            
+                if usuarioActual:
+                    usuarioActual = Usuario(usuarioActual['correo'], usuarioActual['password'], usuarioActual['tipo'])
+                    st.success(f"Bienvenido de regreso {usuarioActual.getTipo()}")
+                    st.session_state.user = usuarioActual
 
-                        
-                    except:
-                        st.error(e)
+# Mostrar funcionalidades del colaborador si el usuario es un "Colaborador"
 
 
 
@@ -73,11 +48,9 @@ with pantallaInicio1:
             
             if btnCrearCliente:
                 try: 
-                    print(tipo)
                     miUsuario = Usuario(correo,contrasena,tipo)
-                    print(miUsuario)
-                    print(miUsuario.generarDatosjson())
-                    res = insertarValor(miUsuario.generarDatosjson())
+                    
+                    res = insertarUsuario(miUsuario.generarDatosjson())
                     
                     if(res):
                         st.success("Se registro con exito la conexion")
@@ -87,11 +60,151 @@ with pantallaInicio1:
                 except:
                     st.warning("No se registro la informacion")
 
+if st.session_state.user and st.session_state.user.getTipo() == "Colaborador":
+    pantallaSolicitud = st.container()
+    with pantallaSolicitud:
+        st.title("Solicitudes")
+        accion = st.selectbox("Seleccione su opcion: ",["...","Registro de una solicitud de viaje","Modificar/Eliminar una solicitud","Ver solicitud de solicitudes"])
+        if accion == "Registro de una solicitud de viaje":
+            registro= st.container()
+            with registro:
+                    columna1, columna2,columna3= st.columns(3)
+                    with columna1:   
+                        if st.session_state.colaborador:
+                            nombreCompleto = st.text_input('Ingrese su nombre completo:',key="input_nombreCompleto",placeholder = st.session_state.colaborador.getNombre())
+                            puesto = st.text_input("Ingrese su puesto: ",key="inputPuesto",placeholder = st.session_state.colaborador.getPuesto())
+                            departamento = st.text_input("Ingrese el departamento en que trabaja: ",key="inputDepartamento",placeholder = st.session_state.colaborador.getDepartamento())
+                        else:
+                            nombreCompleto = st.text_input('Ingrese su nombre completo:',key="input_nombreCompleto")
+                            puesto = st.text_input("Ingrese su puesto: ",key="inputPuesto")
+                            departamento = st.text_input("Ingrese el departamento en que trabaja: ",key="inputDepartamento")
+                        
 
 
-   
+                        viajeInternacional= st.selectbox("Su viaje es internacional: ", ["...","Si", "No"])
+                        pais = st.text_input("Ingrese pais destino: ",key="inputpais")
+                        viaje = st.selectbox("Motivo de viaje: ",["...","Seguimiento","Cierre venta", "Capacitacion"])
+                    with columna3:
+                        fechaInicio = st.date_input("Ingrese la fecha de inicio: ")
+                        fechaFin = st.date_input("Ingrese la fecha de finalizacion: ")
+                        detalles = st.text("Detalles del vuelo")
+                        aereolina = st.text_input("Ingrese la aereolina a utilizar: ",key="inputAereo")
+                        precio = st.text_input("Ingrese el precio del boleto: ",key="inputPrecio")
+                        alojamiento = st.text_input("Ingrese el lugar donde se va a alojar: ",key="inputAloj")
+                        transporte = st.selectbox("Requiere de transporte: ",["...","Si","No"])  
+                    #FALTA GENERAR EL ID  
+                    btnRegistrar = st.button("Registrar")
+                    if btnRegistrar:
+                        correo = st.session_state.user.getCorreo()
+                        tipo = st.session_state.user.getTipo()
+                        password = st.session_state.user.getPassword()
+                        colaborador = Colaborador(correo,tipo,password, nombreCompleto, puesto, departamento)
+                        viaje = Viaje(colaborador,viajeInternacional,pais,viaje,fechaInicio,fechaFin,aereolina,precio,alojamiento,transporte)
+                        if encontrarColaborador(colaborador.generarDatosjson()):
+                            try:
+                                colaborador =  verificarDato(colaborador.generarDatosjson(),realizarConeccionUsuarios())
+                                st.session_state.colaborador = Colaborador(colaborador["correo"],colaborador["password"],colaborador["tipo"],colaborador["informacion"]["nombre"],colaborador["informacion"]['puesto'],colaborador["informacion"]["departamento"])
+                                res = insertarViaje(viaje.generarDatosJSON(),realizarConeccionViajes())
+                                st.success(f"Viaje registrado efeactivamente para el colaborador {st.session_state.colaborador.getNombre()}")
+                            except Exception as e:
+                                print(e)
+                                st.warning("No se ha completado el registro de los datos")
 
-   
+                        else:
+                            
+                            try:
+                                st.write(st.session_state.user.generarDatosjson())
+                                st.write(colaborador.generarDatosjson())
+                                generarColaborador(st.session_state.user.generarDatosjson(),colaborador.generarDatosjson())
+                                st.write(viaje.generarDatosJSON())
+                                insertarViaje(viaje.generarDatosJSON())
+                                st.success(f"Viaje registrado efeactivamente para el colaborador {colaborador.getNombre()}")
+                                st.session_state.colaborador = colaborador
+                                
+                            except Exception as e:
+                                print(e)
+                                st.warning("No se ha completado el registro de los datos")
+
+            
+            
+                            
+                            
+                            
+                            
+                        
+                        
+                        
+
+            if accion=="Modificar/Eliminar una solicitud":
+                modificar = st.container()
+                with modificar:
+                    opcion = st.selectbox("Escoja el id de su solicitud",["AQUI VAN LAS SOLICITUDES GENERADAS EN UN FOR"])
+                    st.write("Informacion actual de la solicitud: ")
+                    columna1, columna2,columna3= st.columns(3)
+                    with columna1:  
+                        nuevoNombreCompleto = st.text_input('Ingrese su nombre completo:',value="AQUI VA EL DROPDOWN")
+                        nuevoPuesto = st.text_input("Ingrese su puesto: ",value="AQUI VA EL DROPDOWN")
+                        nuevoDepartamento = st.text_input("Ingrese el departamento en que trabaja: ",value="AQUI VA EL DROPDOWN")
+                        nuevoViajeInternacional= st.selectbox("Su viaje es internacional: ", ["...","Si", "No"])
+                        nuevoPais = st.text_input("Ingrese pais destino: ",value="AQUI VA EL DROPDOWN")
+                        nuevoViaje = st.selectbox("Motivo de viaje: ",["...","Seguimiento","Cierre venta", "Capacitacion"])
+                    with columna3:
+                        nuevaFechaInicio = st.date_input("Ingrese la fecha de inicio: ")
+                        nuevaFechaFin = st.date_input("Ingrese la fecha de finalizacion: ")
+                        st.text("Detalles del vuelo")
+                        nuevaAereolina = st.text_input("Ingrese la aereolina a utilizar: ",value="AQUI VA EL DROPDOWN")
+                        nuevoPrecio = st.text_input("Ingrese el precio del boleto: ",value="AQUI VA EL DROPDOWN")
+                        nuevoAlojamiento = st.text_input("Ingrese el lugar donde se va a alojar: ",value="AQUI VA EL DROPDOWN")
+                        nuevoTransporte = st.selectbox("Requiere de transporte: ",["...","Si","No"])    
+                    btnModificar = st.button("Modificar la informacion")
+                    btnEliminar = st.button("Eliminar la solicitud")
+
+            if accion == "Ver solicitud de solicitudes":
+                visualizacion = st.container()
+                with visualizacion:
+                    opcion = st.selectbox("Escoja el id de su solicitud",["AQUI VAN LAS SOLICITUDES GENERADAS EN UN FOR"])
+                    columna1, columna2,columna3= st.columns(3)
+                    with columna1:    
+                        nombreCompleto = st.text_input('Nombre completo:',value="AQUI VA EL DROPDOWN")
+                        puesto = st.text_input("Puesto: ",value="AQUI VA EL DROPDOWN")
+                        departamento = st.text_input("Departamento en que trabaja: ",value="AQUI VA EL DROPDOWN")
+                        viajeInternacional= st.text_input("Su viaje es internacional: ",value="AQUI VA EL DROPDOWN")
+                        pais = st.text_input("Pais destino: ",value="AQUI VA EL DROPDOWN")
+                        viaje = st.text_input("Motivo de viaje: ",value="AQUI VA EL DROPDOWN")
+                        estado = st.text_input("Estado: ",value="AQUI VA EL DROPDOWN")
+                    with columna3:
+                        fechaInicio = st.text_input("Fecha de inicio: ",value="AQUI VA EL DROPDOWN")
+                        fechaFin = st.text_input("Fecha de finalizacion: ",value="AQUI VA EL DROPDOWN")
+                        st.text("Detalles del vuelo")
+                        aereolina = st.text_input("Aereolina a utilizar: ",value="AQUI VA EL DROPDOWN")
+                        precio = st.text_input("Precio del boleto: ",value="AQUI VA EL DROPDOWN")
+                        alojamiento = st.text_input("Lugar donde se va a alojar: ",value="AQUI VA EL DROPDOWN")
+                        transporte = st.text_input("Requiere de transporte: ",value="AQUI VA EL DROPDOWN") 
+
+
+
+
+if st.session_state.user and st.session_state.user.getTipo() == "Empleado":
+    pantallaEmpleado = st.container()
+    with pantallaEmpleado:
+        st.title("Gestionar solicitudes")
+        accion = st.selectbox("Seleccione su opcion: ",["...","Valorar solicitud","Consultar viajes programados","Consultar viajes internacionales","Consultar por destino especifico"])
+        if accion == "Valorar solicitud":
+            opcion = st.selectbox("Solicitudes en estado de pendiente: ",["AQUI VAN LAS SOLICITUDES GENERADAS EN UN FOR"])
+            decision = st.selectbox("Desea aprobar o rechazar esta solicitud: ",["...","Aprobar","Rechazar"])
+        if accion == "Consultar viajes programados":
+            #CONSULTA
+            fecha = st.date_input("Ingrese la fecha a consultar: ")
+            st.table(["Hola"])
+        if accion == "Consultar viajes internacionales":
+            st.selectbox("Indique el trimestre que desea: ", ["1er Trimestre","2do Trimestre","3er Trimestre","4to Trimestre"])
+            st.text_input("Indique el año del trimestre que desea consultar: ")
+
+            #CONSULTA
+            st.table(["Hola 2.0"])
+        if accion == "Consultar por destino especifico":
+            destino = st.selectbox("Seleccione un destino: ",['DROPDOWN'])
+            st.table(["Hola"])
           
                         
 
