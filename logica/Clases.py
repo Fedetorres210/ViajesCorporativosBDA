@@ -42,6 +42,8 @@ class Usuario:
     
     def getTipo(self):
         return self.tipo
+    
+    
 
 
 """
@@ -149,7 +151,7 @@ class Viaje:
     
     
     """
-    def __init__(self,colaborador,internacional,destino,motivo,fechaInicio,fechaFin,aerolinea,precio,alojamiento,transporte):
+    def __init__(self,colaborador,internacional,destino,motivo,fechaInicio,fechaFin,aerolinea,precio,alojamiento,transporte,estado="pendiente"):
         self.colaborador = colaborador
         self.internacional = internacional
         self.destino = destino
@@ -161,6 +163,8 @@ class Viaje:
         self.precio = precio
         self.alojamiento =alojamiento
         self.transporte = transporte
+        self.estado = estado
+        
 
     def generarDatosJSON(self):
         dic = {
@@ -171,7 +175,10 @@ class Viaje:
             "fechaInicio":f"{self.fechaInicio}",
             "fechaFin":f"{self.fechaFin}",
             "aerolinea":self.aerolinea,
-            "precio":self.precio
+            "precio":self.precio,
+            "estado":self.estado,
+            "alojamiento":self.alojamiento,
+            "transporte":self.transporte
 
         }
 

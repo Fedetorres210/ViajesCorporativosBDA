@@ -1,8 +1,9 @@
 import streamlit as st
 import subprocess
 from  logica.Clases import Usuario, Viaje,Colaborador
-from config.config import insertarViaje, verificarInicioSesion,verificarDato, encontrarColaborador,generarColaborador,insertarUsuario
+from config.config import insertarViaje, verificarInicioSesion,verificarDato, encontrarColaborador,generarColaborador,insertarUsuario, verificarDatos,encontrarViajesUsuario,eliminarViaje,modificarViaje
 from config.connection import realizarConeccionUsuarios,realizarConeccionViajes
+import pandas as pd
 
 
 if 'user' not in st.session_state:
@@ -71,9 +72,9 @@ if st.session_state.user and st.session_state.user.getTipo() == "Colaborador":
                     columna1, columna2,columna3= st.columns(3)
                     with columna1:   
                         if st.session_state.colaborador:
-                            nombreCompleto = st.text_input('Ingrese su nombre completo:',key="input_nombreCompleto",placeholder = st.session_state.colaborador.getNombre())
-                            puesto = st.text_input("Ingrese su puesto: ",key="inputPuesto",placeholder = st.session_state.colaborador.getPuesto())
-                            departamento = st.text_input("Ingrese el departamento en que trabaja: ",key="inputDepartamento",placeholder = st.session_state.colaborador.getDepartamento())
+                            nombreCompleto = st.text_input('Ingrese su nombre completo:',key="input_nombreCompleto",value = st.session_state.colaborador.getNombre())
+                            puesto = st.text_input("Ingrese su puesto: ",key="inputPuesto",value = st.session_state.colaborador.getPuesto())
+                            departamento = st.text_input("Ingrese el departamento en que trabaja: ",key="inputDepartamento",value = st.session_state.colaborador.getDepartamento())
                         else:
                             nombreCompleto = st.text_input('Ingrese su nombre completo:',key="input_nombreCompleto")
                             puesto = st.text_input("Ingrese su puesto: ",key="inputPuesto")
@@ -104,7 +105,7 @@ if st.session_state.user and st.session_state.user.getTipo() == "Colaborador":
                             try:
                                 colaborador =  verificarDato(colaborador.generarDatosjson(),realizarConeccionUsuarios())
                                 st.session_state.colaborador = Colaborador(colaborador["correo"],colaborador["password"],colaborador["tipo"],colaborador["informacion"]["nombre"],colaborador["informacion"]['puesto'],colaborador["informacion"]["departamento"])
-                                res = insertarViaje(viaje.generarDatosJSON(),realizarConeccionViajes())
+                                res = insertarViaje(viaje.generarDatosJSON())
                                 st.success(f"Viaje registrado efeactivamente para el colaborador {st.session_state.colaborador.getNombre()}")
                             except Exception as e:
                                 print(e)
@@ -113,10 +114,9 @@ if st.session_state.user and st.session_state.user.getTipo() == "Colaborador":
                         else:
                             
                             try:
-                                st.write(st.session_state.user.generarDatosjson())
-                                st.write(colaborador.generarDatosjson())
+                                
                                 generarColaborador(st.session_state.user.generarDatosjson(),colaborador.generarDatosjson())
-                                st.write(viaje.generarDatosJSON())
+                                
                                 insertarViaje(viaje.generarDatosJSON())
                                 st.success(f"Viaje registrado efeactivamente para el colaborador {colaborador.getNombre()}")
                                 st.session_state.colaborador = colaborador
@@ -135,51 +135,74 @@ if st.session_state.user and st.session_state.user.getTipo() == "Colaborador":
                         
                         
 
-            if accion=="Modificar/Eliminar una solicitud":
-                modificar = st.container()
-                with modificar:
-                    opcion = st.selectbox("Escoja el id de su solicitud",["AQUI VAN LAS SOLICITUDES GENERADAS EN UN FOR"])
-                    st.write("Informacion actual de la solicitud: ")
-                    columna1, columna2,columna3= st.columns(3)
-                    with columna1:  
-                        nuevoNombreCompleto = st.text_input('Ingrese su nombre completo:',value="AQUI VA EL DROPDOWN")
-                        nuevoPuesto = st.text_input("Ingrese su puesto: ",value="AQUI VA EL DROPDOWN")
-                        nuevoDepartamento = st.text_input("Ingrese el departamento en que trabaja: ",value="AQUI VA EL DROPDOWN")
-                        nuevoViajeInternacional= st.selectbox("Su viaje es internacional: ", ["...","Si", "No"])
-                        nuevoPais = st.text_input("Ingrese pais destino: ",value="AQUI VA EL DROPDOWN")
-                        nuevoViaje = st.selectbox("Motivo de viaje: ",["...","Seguimiento","Cierre venta", "Capacitacion"])
-                    with columna3:
-                        nuevaFechaInicio = st.date_input("Ingrese la fecha de inicio: ")
-                        nuevaFechaFin = st.date_input("Ingrese la fecha de finalizacion: ")
-                        st.text("Detalles del vuelo")
-                        nuevaAereolina = st.text_input("Ingrese la aereolina a utilizar: ",value="AQUI VA EL DROPDOWN")
-                        nuevoPrecio = st.text_input("Ingrese el precio del boleto: ",value="AQUI VA EL DROPDOWN")
-                        nuevoAlojamiento = st.text_input("Ingrese el lugar donde se va a alojar: ",value="AQUI VA EL DROPDOWN")
-                        nuevoTransporte = st.selectbox("Requiere de transporte: ",["...","Si","No"])    
-                    btnModificar = st.button("Modificar la informacion")
-                    btnEliminar = st.button("Eliminar la solicitud")
+        if accion=="Modificar/Eliminar una solicitud":
+            modificar = st.container()
+            with modificar:
+                    try:
+                        viajesUsuario = [elem for elem in encontrarViajesUsuario(st.session_state.user)]
+                        opcion = st.selectbox("Escoja el id de su solicitud",[elem["_id"] for elem in viajesUsuario])
+                        st.write("Informacion actual de la solicitud: ")
+                        columna1, columna2,columna3= st.columns(3)
+                        st.write(viajesUsuario)
+                        viajeSeleccionado = [elem for elem in viajesUsuario if elem["_id"]== opcion]
+                        st.write(viajeSeleccionado)
 
-            if accion == "Ver solicitud de solicitudes":
-                visualizacion = st.container()
-                with visualizacion:
-                    opcion = st.selectbox("Escoja el id de su solicitud",["AQUI VAN LAS SOLICITUDES GENERADAS EN UN FOR"])
-                    columna1, columna2,columna3= st.columns(3)
-                    with columna1:    
-                        nombreCompleto = st.text_input('Nombre completo:',value="AQUI VA EL DROPDOWN")
-                        puesto = st.text_input("Puesto: ",value="AQUI VA EL DROPDOWN")
-                        departamento = st.text_input("Departamento en que trabaja: ",value="AQUI VA EL DROPDOWN")
-                        viajeInternacional= st.text_input("Su viaje es internacional: ",value="AQUI VA EL DROPDOWN")
-                        pais = st.text_input("Pais destino: ",value="AQUI VA EL DROPDOWN")
-                        viaje = st.text_input("Motivo de viaje: ",value="AQUI VA EL DROPDOWN")
-                        estado = st.text_input("Estado: ",value="AQUI VA EL DROPDOWN")
-                    with columna3:
-                        fechaInicio = st.text_input("Fecha de inicio: ",value="AQUI VA EL DROPDOWN")
-                        fechaFin = st.text_input("Fecha de finalizacion: ",value="AQUI VA EL DROPDOWN")
-                        st.text("Detalles del vuelo")
-                        aereolina = st.text_input("Aereolina a utilizar: ",value="AQUI VA EL DROPDOWN")
-                        precio = st.text_input("Precio del boleto: ",value="AQUI VA EL DROPDOWN")
-                        alojamiento = st.text_input("Lugar donde se va a alojar: ",value="AQUI VA EL DROPDOWN")
-                        transporte = st.text_input("Requiere de transporte: ",value="AQUI VA EL DROPDOWN") 
+
+                        with columna1:  
+                            nuevoNombreCompleto = st.text_input('Ingrese su nombre completo:',value=viajeSeleccionado[0]["Colaborador"]["informacion"]["nombre"])
+                            nuevoPuesto = st.text_input("Ingrese su puesto: ",value=viajeSeleccionado[0]["Colaborador"]["informacion"]["puesto"])
+                            nuevoDepartamento = st.text_input("Ingrese el departamento en que trabaja: ",value=viajeSeleccionado[0]["Colaborador"]["informacion"]["departamento"])
+                            nuevoViajeInternacional= st.selectbox("Su viaje es internacional: ", ["...","Si", "No"])
+                            nuevoPais = st.text_input("Ingrese pais destino: ",value=viajeSeleccionado[0]["destino"])
+                            
+                            nuevoViaje = st.selectbox("Motivo de viaje: ",["...","Seguimiento","Cierre venta", "Capacitacion"])
+                        with columna3:
+                            nuevaFechaInicio = st.date_input("Ingrese la fecha de inicio: ")
+                            nuevaFechaFin = st.date_input("Ingrese la fecha de finalizacion: ")
+                            st.subheader("Detalles del vuelo")
+                            nuevaAereolina = st.text_input("Ingrese la aereolina a utilizar: ",value=viajeSeleccionado[0]["aerolinea"])
+                            nuevoPrecio = st.text_input("Ingrese el precio del boleto: ",value=viajeSeleccionado[0]["precio"])
+                            nuevoAlojamiento = st.text_input("Ingrese el lugar donde se va a alojar: ",value=viajeSeleccionado[0]["alojamiento"])
+                            nuevoTransporte = st.selectbox("Requiere de transporte: ",["...","Si","No"])    
+                            btnModificar = st.button("Modificar la informacion")
+                            btnEliminar = st.button("Eliminar la solicitud")
+                            if btnEliminar:
+                                try:
+                                    eliminarViaje(viajeSeleccionado[0])
+                                    st.success(f"Viaje  eliminado")
+                                except Exception as e:
+                                    st.write(e)
+                                    st.warning(f"Viaje seleccionado no ha sido eliminado")
+
+                            if btnModificar:
+                                try:
+                                    colaboradorNuevo = Colaborador(st.session_state.user.getCorreo(),st.session_state.user.getPassword(), st.session_state.user.getTipo(),nuevoNombreCompleto,nuevoPuesto,nuevoDepartamento)
+                                    viaje = Viaje(colaboradorNuevo,nuevoViajeInternacional,nuevoPais,nuevoViaje,nuevaFechaInicio,nuevaFechaFin,nuevaAereolina,nuevoPrecio,nuevoAlojamiento,nuevoTransporte)
+                                    modificarViaje(viajeSeleccionado[0],viaje.generarDatosJSON())
+                                    st.success(f"Viaje  modificado")
+                                except Exception as e:
+                                    st.write(e)
+                                    st.warning(f"Fallo en la modificacion de datos")
+                        
+                    except Exception:
+                        st.warning("Debe registrar viajes para el colaborador")
+                    
+                    
+
+
+        if accion == "Ver solicitud de solicitudes":
+            visualizacion = st.container()
+            
+            with visualizacion:
+                    viajesUsuario = [elem for elem in encontrarViajesUsuario(st.session_state.user)]
+                    opcion = st.selectbox("Escoja el id de su solicitud",[elem["_id"] for elem in viajesUsuario])
+                    viajeSeleccionado = [elem for elem in viajesUsuario if elem["_id"]== opcion]
+                    colaborador = viajeSeleccionado[0].pop("Colaborador")
+                    viajeSeleccionado[0].pop("_id")
+
+
+                    df = pd.DataFrame(viajeSeleccionado)
+                    st.table(df)
 
 
 

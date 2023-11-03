@@ -29,7 +29,6 @@ def realizarConeccionUsuarios(URL= "mongodb+srv://admin:EieQHZvhRx9Ej5JQ@cluster
         client = pymongo.MongoClient(URL)
         db = client.viajes
         collection = db.usuarios
-        
 
     except Exception:
         return False
