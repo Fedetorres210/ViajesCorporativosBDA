@@ -146,12 +146,12 @@ class Viaje:
     @param fechaInicio: fecha de inicio del viaje
     @param fechaFin : fecha de terminacion del viaje
     @param detalles: detalles del viaje
-    @param: aerolinea: aerolinea del viaje
+    @param aerolinea: aerolinea del viaje
     @param precio: precio del viaje
     
     
     """
-    def __init__(self,colaborador,internacional,destino,motivo,fechaInicio,fechaFin,aerolinea,precio,alojamiento,transporte,estado="pendiente"):
+    def __init__(self,colaborador,internacional,destino,motivo,fechaInicio,fechaFin,aerolinea,precio,alojamiento,transporte,estado ="pendiente"):
         self.colaborador = colaborador
         self.internacional = internacional
         self.destino = destino
